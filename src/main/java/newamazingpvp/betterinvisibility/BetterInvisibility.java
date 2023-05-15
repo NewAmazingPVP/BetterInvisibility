@@ -30,7 +30,7 @@ public final class BetterInvisibility extends JavaPlugin {
 
     public void registerPacketListener() {
         protocolManager.addPacketListener(
-                new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.ENTITY_EQUIPMENT) {
+                new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.ENTITY_EFFECT ) {
                     @Override
                     public void onPacketSending(PacketEvent event) {
                         Player observer = event.getPlayer();
@@ -47,5 +47,5 @@ public final class BetterInvisibility extends JavaPlugin {
         );
     }
 
-    
+
 }
