@@ -3,35 +3,31 @@ package newamazingpvp.betterinvisibility;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import org.bukkit.Bukkit;
-import org.bukkit.EntityEffect;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     private ProtocolManager protocolManager;
+
+    private final HashMap<UUID, Long> lastHitTimestamps = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -48,10 +44,10 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             Player player = (Player) entity;
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to remove all armor when player becomes invisible
-                removeAllArmor(player);
+                Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 0L);
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to restore player's armor when invisibility effect is removed
-                restoreArmor(player);
+                Bukkit.getScheduler().runTaskTimer(this, () -> restoreArmor(player), 0L, 0L);
             }
         }
     }
@@ -108,30 +104,54 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) throws InvocationTargetException {
-        if (event.getEntity() instanceof Player) {
+        if (event.getEntity() instanceof Player && event.getDamager() instanceof Player) {
             // Get the player who is taking damage
             Player player = (Player) event.getEntity();
+            Player attacker = (Player) event.getDamager();
 
-            if (player.getActivePotionEffects().contains(PotionEffectType.INVISIBILITY)){
+            if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+
+                // Cancel the event to prevent the animation from being shown
+                event.setCancelled(true);
+
+                // Check if the player has been hit recently
+                long currentTime = System.currentTimeMillis();
+                long lastHitTime = lastHitTimestamps.getOrDefault(player.getUniqueId(), 0L);
+                long cooldownMillis = 500;
+
+                if (currentTime - lastHitTime < cooldownMillis) {
+                    return; // Skip the knockback if the player was hit recently
+                }
+
+                lastHitTimestamps.put(player.getUniqueId(), currentTime);
+
                 // Calculate the damage, including enchantments and armor reduction
                 double damage = event.getFinalDamage();
 
                 // Manually apply the damage to the player without showing the animation
                 player.setHealth(Math.max(0, player.getHealth() - damage));
 
-                PacketContainer packetContainer = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
+                // Get the attacker's and target's locations
+                Location attackerLocation = attacker.getLocation();
+                Location targetLocation = player.getLocation();
 
-                packetContainer.getIntegers().write(0, player.getEntityId());
-                packetContainer.getIntegers().write(0,1 );
-                protocolManager.sendServerPacket(player, packetContainer);
+                // Calculate the knockback direction
+                Vector knockbackDirection = targetLocation.toVector().subtract(attackerLocation.toVector()).normalize();
 
-                if (player.getHealth() <= 0){
-                    System.out.println("Invisible person died");
-                }
-                // Cancel the event to prevent the animation from being shown
-                event.setCancelled(true);
+                // Set the knockback magnitude
+                double knockbackMagnitude = attacker.isSprinting() ? 1.3 : 0.8;
 
-                removeAllArmor(player);
+                // Multiply the direction by the magnitude
+                Vector horizontalKnockback = knockbackDirection.multiply(knockbackMagnitude);
+
+                // Add vertical knockback component
+                Vector verticalKnockback = new Vector(0, 0.35, 0);
+
+                // Combine horizontal and vertical knockback
+                Vector knockback = horizontalKnockback.add(verticalKnockback);
+
+                // Apply the knockback to the target player
+                player.setVelocity(knockback);
             }
         }
     }
