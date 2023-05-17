@@ -10,6 +10,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.EntityEffect;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -23,6 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +39,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         protocolManager = ProtocolLibrary.getProtocolManager();
         // Register events for this plugin
         getServer().getPluginManager().registerEvents(this, this);
-        registerPacketListener();
     }
 
     @EventHandler
@@ -106,7 +107,7 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) throws InvocationTargetException {
         System.out.println("onEntityDamageByEntity");
         if (event.getEntity() instanceof Player) {
             // Get the player who is taking damage
@@ -118,10 +119,15 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             // Manually apply the damage to the player without showing the animation
             player.setHealth(Math.max(0, player.getHealth() - damage));
 
-            if (player.getHealth() <= 0){
-                System.out.println("Invisible person died")
-            }
+            PacketContainer packetContainer = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
 
+            packetContainer.getIntegers().write(0, player.getEntityId());
+            packetContainer.getIntegers().write(0,1 );
+            protocolManager.sendServerPacket(player, packetContainer);
+
+            if (player.getHealth() <= 0){
+                System.out.println("Invisible person died");
+            }
             // Cancel the event to prevent the animation from being shown
             event.setCancelled(true);
         }
