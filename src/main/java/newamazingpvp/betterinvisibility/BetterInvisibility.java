@@ -3,7 +3,10 @@ package newamazingpvp.betterinvisibility;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import org.bukkit.Bukkit;
@@ -12,10 +15,13 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +37,7 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         protocolManager = ProtocolLibrary.getProtocolManager();
         // Register events for this plugin
         getServer().getPluginManager().registerEvents(this, this);
+        registerPacketListener();
     }
 
     @EventHandler
@@ -98,6 +105,25 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         }
     }
 
+    @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        System.out.println("onEntityDamageByEntity");
+        if (event.getEntity() instanceof Player) {
+            // Get the player who is taking damage
+            Player player = (Player) event.getEntity();
+
+            // Calculate the damage, including enchantments and armor reduction
+            double damage = event.getFinalDamage();
+
+            // Manually apply the damage to the player without showing the animation
+            player.setHealth(Math.max(0, player.getHealth() - damage));
+
+            // Cancel the event to prevent the animation from being shown
+            event.setCancelled(true);
+        }
+    }
+
+
 
     public void removeAllArmor(Player player) {
         // Create a packet to clear player's armor
@@ -135,5 +161,18 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+
+    public void registerPacketListener() {
+        protocolManager.addPacketListener(
+                new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.ANIMATION) {
+                    @Override
+                    public void onPacketSending(PacketEvent event) {
+                        System.out.println("onPacketSending");
+                            event.setCancelled(true);
+                    }
+                }
+        );
     }
 }
