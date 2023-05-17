@@ -175,8 +175,7 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
         // Create a list of slot-item pairs with empty items (air) for the packet
         List<Pair<EnumWrappers.ItemSlot, ItemStack>> slotItemPairs = new ArrayList<>();
-        for (int i = 0; i < slots.size(); i++) {
-            EnumWrappers.ItemSlot itemSlot = slots.get(i);
+        for (EnumWrappers.ItemSlot itemSlot : slots) {
             ItemStack airItem = new ItemStack(Material.AIR);
             Pair<EnumWrappers.ItemSlot, ItemStack> slotItemPair = new Pair<>(itemSlot, airItem);
             slotItemPairs.add(slotItemPair);
