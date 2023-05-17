@@ -118,6 +118,10 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             // Manually apply the damage to the player without showing the animation
             player.setHealth(Math.max(0, player.getHealth() - damage));
 
+            if (player.getHealth() <= 0){
+                System.out.println("Invisible person died")
+            }
+
             // Cancel the event to prevent the animation from being shown
             event.setCancelled(true);
         }
@@ -161,18 +165,5 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-
-    public void registerPacketListener() {
-        protocolManager.addPacketListener(
-                new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.ANIMATION) {
-                    @Override
-                    public void onPacketSending(PacketEvent event) {
-                        System.out.println("onPacketSending");
-                            event.setCancelled(true);
-                    }
-                }
-        );
     }
 }
