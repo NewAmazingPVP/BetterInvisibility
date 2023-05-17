@@ -48,10 +48,10 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             Player player = (Player) entity;
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to remove all armor when player becomes invisible
-                Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 0L);
+                removeAllArmor(player);
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to restore player's armor when invisibility effect is removed
-                Bukkit.getScheduler().runTaskTimer(this, () -> restoreArmor(player), 0L, 0L);
+                restoreArmor(player);
             }
         }
     }
@@ -130,6 +130,8 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                 }
                 // Cancel the event to prevent the animation from being shown
                 event.setCancelled(true);
+
+                removeAllArmor(player);
             }
         }
     }
