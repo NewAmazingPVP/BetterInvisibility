@@ -108,28 +108,29 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) throws InvocationTargetException {
-        System.out.println("onEntityDamageByEntity");
         if (event.getEntity() instanceof Player) {
             // Get the player who is taking damage
             Player player = (Player) event.getEntity();
 
-            // Calculate the damage, including enchantments and armor reduction
-            double damage = event.getFinalDamage();
+            if (player.getActivePotionEffects().contains(PotionEffectType.INVISIBILITY)){
+                // Calculate the damage, including enchantments and armor reduction
+                double damage = event.getFinalDamage();
 
-            // Manually apply the damage to the player without showing the animation
-            player.setHealth(Math.max(0, player.getHealth() - damage));
+                // Manually apply the damage to the player without showing the animation
+                player.setHealth(Math.max(0, player.getHealth() - damage));
 
-            PacketContainer packetContainer = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
+                PacketContainer packetContainer = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
 
-            packetContainer.getIntegers().write(0, player.getEntityId());
-            packetContainer.getIntegers().write(0,1 );
-            protocolManager.sendServerPacket(player, packetContainer);
+                packetContainer.getIntegers().write(0, player.getEntityId());
+                packetContainer.getIntegers().write(0,1 );
+                protocolManager.sendServerPacket(player, packetContainer);
 
-            if (player.getHealth() <= 0){
-                System.out.println("Invisible person died");
+                if (player.getHealth() <= 0){
+                    System.out.println("Invisible person died");
+                }
+                // Cancel the event to prevent the animation from being shown
+                event.setCancelled(true);
             }
-            // Cancel the event to prevent the animation from being shown
-            event.setCancelled(true);
         }
     }
 
