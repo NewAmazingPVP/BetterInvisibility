@@ -3,7 +3,10 @@ package newamazingpvp.betterinvisibility;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import org.bukkit.Bukkit;
@@ -44,10 +47,10 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             Player player = (Player) entity;
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to remove all armor when player becomes invisible
-                Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 0L);
+                Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 1L);
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to restore player's armor when invisibility effect is removed
-                Bukkit.getScheduler().runTaskTimer(this, () -> restoreArmor(player), 0L, 0L);
+                Bukkit.getScheduler().runTaskTimer(this, () -> restoreArmor(player), 0L, 1L);
             }
         }
     }
@@ -194,4 +197,8 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             }
         }
     }
+
+
+
+
 }
