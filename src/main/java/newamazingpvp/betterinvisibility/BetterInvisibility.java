@@ -3,10 +3,8 @@ package newamazingpvp.betterinvisibility;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
+
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
 import org.bukkit.Bukkit;
@@ -108,7 +106,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) throws InvocationTargetException {
         if (event.getEntity() instanceof Player && event.getDamager() instanceof Player) {
-            // Get the player who is taking damage
             Player player = (Player) event.getEntity();
             Player attacker = (Player) event.getDamager();
 
@@ -159,8 +156,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         }
     }
 
-
-
     public void removeAllArmor(Player player) {
         // Create a packet to clear player's armor
         PacketContainer clearArmorPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
@@ -197,8 +192,4 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             }
         }
     }
-
-
-
-
 }
