@@ -1,6 +1,5 @@
 # Better Invisibility Configuration
 
-
 hide:
   helment: true
   chestplate: true
@@ -9,7 +8,6 @@ hide:
   mainhand: true
   offhand: true
   potionParticles: false
-
 
 # Currently every time you get hit when you are invisible you will appear visible for a split second for the hit animation, and there is a workaround that which will require you to enable this but this make the invisible player have same knockback from every attack
 enable_customKnockback: false
