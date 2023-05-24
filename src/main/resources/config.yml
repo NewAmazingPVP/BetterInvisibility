@@ -9,5 +9,6 @@ hide:
   offhand: true
   potionParticles: false
 
-# Currently every time you get hit when you are invisible you will appear visible for a split second for the hit animation, and there is a workaround that which will require you to enable this but this make the invisible player have same knockback from every attack
-enable_customKnockback: false
+# Currently every time invisible players get hit, they will appear visible for a split second for the hit animation but
+# there is a workaround but this will make the invisible player have same knockback from every attack (custom knockback)
+enable_workaround: false

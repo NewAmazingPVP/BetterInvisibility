@@ -13,7 +13,6 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -76,20 +75,30 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         ItemStack mainHand = player.getInventory().getItemInMainHand();
         ItemStack offHand = player.getInventory().getItemInOffHand();
 
-        // Define the slots where the armor and held items are equipped
-        EnumWrappers.ItemSlot[] slots = new EnumWrappers.ItemSlot[]{
-                EnumWrappers.ItemSlot.FEET,
-                EnumWrappers.ItemSlot.LEGS,
-                EnumWrappers.ItemSlot.CHEST,
-                EnumWrappers.ItemSlot.HEAD,
-                EnumWrappers.ItemSlot.MAINHAND,
-                EnumWrappers.ItemSlot.OFFHAND
-        };
+        ArrayList<EnumWrappers.ItemSlot> slots = new ArrayList<>();
 
-        // Create a list of slot-item pairs for the packet
+        if (!config.getBoolean("hide.boots")) {
+            slots.add(EnumWrappers.ItemSlot.FEET);
+        }
+        if (!config.getBoolean("hide.leggings")) {
+            slots.add(EnumWrappers.ItemSlot.LEGS);
+        }
+        if (!config.getBoolean("hide.chestplate")) {
+            slots.add(EnumWrappers.ItemSlot.CHEST);
+        }
+        if (!config.getBoolean("hide.helmet")) {
+            slots.add(EnumWrappers.ItemSlot.HEAD);
+        }
+        if (!config.getBoolean("hide.mainhand")) {
+            slots.add(EnumWrappers.ItemSlot.MAINHAND);
+        }
+        if (!config.getBoolean("hide.offhand")) {
+            slots.add(EnumWrappers.ItemSlot.OFFHAND);
+        }
+
         List<Pair<EnumWrappers.ItemSlot, ItemStack>> slotItemPairs = new ArrayList<>();
-        for (int i = 0; i < slots.length; i++) {
-            EnumWrappers.ItemSlot itemSlot = slots[i];
+        for (int i = 0; i < slots.size(); i++) {
+            EnumWrappers.ItemSlot itemSlot = slots.get(i);
             ItemStack item;
             if (itemSlot == EnumWrappers.ItemSlot.MAINHAND) {
                 item = mainHand;
@@ -117,6 +126,9 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) throws InvocationTargetException {
+        if(!config.getBoolean("enable_workaround")){
+            return;
+        }
         if (event.getEntity() instanceof Player && event.getDamager() instanceof Player) {
             Player player = (Player) event.getEntity();
             Player attacker = (Player) event.getDamager();
@@ -174,14 +186,26 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         clearArmorPacket.getIntegers().write(0, player.getEntityId());
 
         // Define the slots where the armor and held items are equipped
-        List<EnumWrappers.ItemSlot> slots = new ArrayList<>(Arrays.asList(
-                EnumWrappers.ItemSlot.FEET,
-                EnumWrappers.ItemSlot.LEGS,
-                EnumWrappers.ItemSlot.CHEST,
-                EnumWrappers.ItemSlot.HEAD,
-                EnumWrappers.ItemSlot.MAINHAND,
-                EnumWrappers.ItemSlot.OFFHAND
-        ));
+        ArrayList<EnumWrappers.ItemSlot> slots = new ArrayList<>();
+
+        if (!config.getBoolean("hide.boots")) {
+            slots.add(EnumWrappers.ItemSlot.FEET);
+        }
+        if (!config.getBoolean("hide.leggings")) {
+            slots.add(EnumWrappers.ItemSlot.LEGS);
+        }
+        if (!config.getBoolean("hide.chestplate")) {
+            slots.add(EnumWrappers.ItemSlot.CHEST);
+        }
+        if (!config.getBoolean("hide.helmet")) {
+            slots.add(EnumWrappers.ItemSlot.HEAD);
+        }
+        if (!config.getBoolean("hide.mainhand")) {
+            slots.add(EnumWrappers.ItemSlot.MAINHAND);
+        }
+        if (!config.getBoolean("hide.offhand")) {
+            slots.add(EnumWrappers.ItemSlot.OFFHAND);
+        }
 
         // Create a list of slot-item pairs with empty items (air) for the packet
         List<Pair<EnumWrappers.ItemSlot, ItemStack>> slotItemPairs = new ArrayList<>();
