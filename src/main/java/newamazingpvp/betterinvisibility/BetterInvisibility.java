@@ -10,14 +10,17 @@ import com.comphenix.protocol.wrappers.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
@@ -27,15 +30,16 @@ import java.util.*;
 public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     private ProtocolManager protocolManager;
-
+    private FileConfiguration config;
     private final HashMap<UUID, Long> lastHitTimestamps = new HashMap<>();
 
     @Override
     public void onEnable() {
         // Initialize ProtocolManager
         protocolManager = ProtocolLibrary.getProtocolManager();
-        // Register events for this plugin
         getServer().getPluginManager().registerEvents(this, this);
+        loadConfiguration();
+        config = getConfig();
     }
 
     @EventHandler
@@ -45,7 +49,15 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             Player player = (Player) entity;
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to remove all armor when player becomes invisible
+                if(config.getBoolean("hide.particles"))
+                {
+                    PotionEffect potion = event.getNewEffect();
+                    PotionEffect newEffect = new PotionEffect(PotionEffectType.INVISIBILITY,   potion.getDuration(), potion.getAmplifier(), potion.isAmbient(), false);
+                    player.removePotionEffect(PotionEffectType.INVISIBILITY);
+                    player.addPotionEffect(newEffect);
+                }
                 Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 1L);
+
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to restore player's armor when invisibility effect is removed
                 Bukkit.getScheduler().runTaskTimer(this, () -> restoreArmor(player), 0L, 1L);
@@ -191,5 +203,22 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public void loadConfiguration(){
+        saveDefaultConfig();
+
+        config = getConfig();
+        config.addDefault("ViaVersion.enabled", true);
+        config.addDefault("ViaVersion.dev", false);
+        config.addDefault("ViaBackwards.enabled", true);
+        config.addDefault("ViaBackwards.dev", false);
+        config.addDefault("ViaRewind.enabled", true);
+        config.addDefault("ViaRewind.dev", false);
+        config.addDefault("ViaRewind-Legacy.enabled", true);
+        config.addDefault("Check-Interval", 60);
+
+        config.options().copyDefaults(true);
+        saveConfig();
     }
 }
