@@ -34,6 +34,7 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        new Metrics(this, 18558);
         // Initialize ProtocolManager
         protocolManager = ProtocolLibrary.getProtocolManager();
         getServer().getPluginManager().registerEvents(this, this);
@@ -233,14 +234,14 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         saveDefaultConfig();
 
         config = getConfig();
-        config.addDefault("ViaVersion.enabled", true);
-        config.addDefault("ViaVersion.dev", false);
-        config.addDefault("ViaBackwards.enabled", true);
-        config.addDefault("ViaBackwards.dev", false);
-        config.addDefault("ViaRewind.enabled", true);
-        config.addDefault("ViaRewind.dev", false);
-        config.addDefault("ViaRewind-Legacy.enabled", true);
-        config.addDefault("Check-Interval", 60);
+        config.addDefault("hide.helmet", true);
+        config.addDefault("hide.chestplate", true);
+        config.addDefault("hide.leggings", true);
+        config.addDefault("hide.boots", true);
+        config.addDefault("hide.mainhand", true);
+        config.addDefault("hide.offhand", true);
+        config.addDefault("hide.potionParticles", false);
+        config.addDefault("enable_workaround", false);
 
         config.options().copyDefaults(true);
         saveConfig();
