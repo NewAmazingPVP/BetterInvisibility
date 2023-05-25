@@ -1,5 +1,6 @@
 # Better Invisibility Configuration
 
+# What to hide when player goes invisible
 hide:
   helment: true
   chestplate: true

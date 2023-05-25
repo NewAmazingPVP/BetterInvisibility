@@ -78,22 +78,22 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
         ArrayList<EnumWrappers.ItemSlot> slots = new ArrayList<>();
 
-        if (!config.getBoolean("hide.boots")) {
+        if (config.getBoolean("hide.boots")) {
             slots.add(EnumWrappers.ItemSlot.FEET);
         }
-        if (!config.getBoolean("hide.leggings")) {
+        if (config.getBoolean("hide.leggings")) {
             slots.add(EnumWrappers.ItemSlot.LEGS);
         }
-        if (!config.getBoolean("hide.chestplate")) {
+        if (config.getBoolean("hide.chestplate")) {
             slots.add(EnumWrappers.ItemSlot.CHEST);
         }
-        if (!config.getBoolean("hide.helmet")) {
+        if (config.getBoolean("hide.helmet")) {
             slots.add(EnumWrappers.ItemSlot.HEAD);
         }
-        if (!config.getBoolean("hide.mainhand")) {
+        if (config.getBoolean("hide.mainhand")) {
             slots.add(EnumWrappers.ItemSlot.MAINHAND);
         }
-        if (!config.getBoolean("hide.offhand")) {
+        if (config.getBoolean("hide.offhand")) {
             slots.add(EnumWrappers.ItemSlot.OFFHAND);
         }
 
@@ -189,22 +189,22 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         // Define the slots where the armor and held items are equipped
         ArrayList<EnumWrappers.ItemSlot> slots = new ArrayList<>();
 
-        if (!config.getBoolean("hide.boots")) {
+        if (config.getBoolean("hide.boots")) {
             slots.add(EnumWrappers.ItemSlot.FEET);
         }
-        if (!config.getBoolean("hide.leggings")) {
+        if (config.getBoolean("hide.leggings")) {
             slots.add(EnumWrappers.ItemSlot.LEGS);
         }
-        if (!config.getBoolean("hide.chestplate")) {
+        if (config.getBoolean("hide.chestplate")) {
             slots.add(EnumWrappers.ItemSlot.CHEST);
         }
-        if (!config.getBoolean("hide.helmet")) {
+        if (config.getBoolean("hide.helmet")) {
             slots.add(EnumWrappers.ItemSlot.HEAD);
         }
-        if (!config.getBoolean("hide.mainhand")) {
+        if (config.getBoolean("hide.mainhand")) {
             slots.add(EnumWrappers.ItemSlot.MAINHAND);
         }
-        if (!config.getBoolean("hide.offhand")) {
+        if (config.getBoolean("hide.offhand")) {
             slots.add(EnumWrappers.ItemSlot.OFFHAND);
         }
 
