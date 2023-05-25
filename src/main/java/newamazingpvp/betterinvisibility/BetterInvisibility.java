@@ -30,6 +30,7 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     private ProtocolManager protocolManager;
     private FileConfiguration config;
+    private boolean isEffectAddedByPlugin = false;
     private final HashMap<UUID, Long> lastHitTimestamps = new HashMap<>();
 
     @Override
@@ -44,16 +45,20 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPotionEffect(EntityPotionEffectEvent event) {
+        if (isEffectAddedByPlugin) {
+            isEffectAddedByPlugin = false;
+            return;
+        }
         Entity entity = event.getEntity();
         if (entity instanceof Player) {
             Player player = (Player) entity;
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 // Schedule a task to remove all armor when player becomes invisible
-                if(config.getBoolean("hide.particles"))
-                {
+                if(config.getBoolean("hide.potionParticles")) {
                     PotionEffect potion = event.getNewEffect();
-                    PotionEffect newEffect = new PotionEffect(PotionEffectType.INVISIBILITY,   potion.getDuration(), potion.getAmplifier(), potion.isAmbient(), false);
+                    PotionEffect newEffect = new PotionEffect(PotionEffectType.INVISIBILITY, potion.getDuration(), potion.getAmplifier(), potion.isAmbient(), false);
                     player.removePotionEffect(PotionEffectType.INVISIBILITY);
+                    isEffectAddedByPlugin = true;
                     player.addPotionEffect(newEffect);
                 }
                 Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 1L);
