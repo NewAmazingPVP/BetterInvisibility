@@ -1,7 +1,7 @@
 # BetterInvisibility
 BetterInvisibility is a plugin for Spigot improves Invisibility in Minecraft by many ways by using protocolLib! Plugin hides player's armor and items completely when they are invisible by intercepting packets.
 
-Spigot Link: …………..
+Spigot Link: https://www.spigotmc.org/resources/betterinvisibility.110044/
 
 # Features
 - Compatible with Minecraft versions 1.13 and higher, including the latest versions and most likely future versions as well.
