@@ -83,6 +83,7 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                     player.addPotionEffect(newEffect);
                     isEffectAddedByPlugin = true;
                 }
+                removeArrows(player);
                 Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 1L);
 
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
@@ -256,6 +257,13 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             }
         }
     }
+
+    public void removeArrows(Player player) {
+        PacketContainer removeArrowPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+        removeArrowPacket.getIntegers().write(0, player.getEntityId());
+
+    }
+
 
     public void loadConfiguration(){
         saveDefaultConfig();
