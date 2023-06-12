@@ -23,7 +23,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
@@ -83,7 +82,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                     player.addPotionEffect(newEffect);
                     isEffectAddedByPlugin = true;
                 }
-                removeArrows(player);
                 Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 1L);
 
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
@@ -256,12 +254,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    public void removeArrows(Player player) {
-        PacketContainer removeArrowPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-        removeArrowPacket.getIntegers().write(0, player.getEntityId());
-
     }
 
 
