@@ -73,7 +73,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
         if (entity instanceof Player) {
             Player player = (Player) entity;
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
-                // Schedule a task to remove all armor when player becomes invisible
                 if(config.getBoolean("hide.potionParticles")) {
                     PotionEffect potion = event.getNewEffect();
                     PotionEffect newEffect = new PotionEffect(PotionEffectType.INVISIBILITY, potion.getDuration(), potion.getAmplifier(), potion.isAmbient(), false);
@@ -85,7 +84,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
                 Bukkit.getScheduler().runTaskTimer(this, () -> removeAllArmor(player), 0L, 1L);
 
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
-                // Schedule a task to restore player's armor when invisibility effect is removed
                 Bukkit.getScheduler().runTaskTimer(this, () -> restoreArmor(player), 0L, 1L);
             }
         }
@@ -93,11 +91,9 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
 
     public void restoreArmor(Player player) {
-        // Create a packet to restore player's armor
         PacketContainer restoreArmorPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
         restoreArmorPacket.getIntegers().write(0, player.getEntityId());
 
-        // Get the player's armor contents and held items
         ItemStack[] armorContents = player.getInventory().getArmorContents();
         ItemStack mainHand = player.getInventory().getItemInMainHand();
         ItemStack offHand = player.getInventory().getItemInOffHand();
@@ -138,11 +134,10 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             slotItemPairs.add(slotItemPair);
         }
         restoreArmorPacket.getSlotStackPairLists().write(0, slotItemPairs);
-        // Send the restore armor packet to all players in the same world
         List<Player> playersInWorld = player.getWorld().getPlayers();
         for (Player currentPlayer : playersInWorld) {
             try {
-                if (currentPlayer != player) {
+                if (!currentPlayer.equals(player)) {
                     protocolManager.sendServerPacket(currentPlayer, restoreArmorPacket);
                 }
             } catch (Exception e) {
@@ -162,57 +157,44 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
 
             if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
 
-                // Cancel the event to prevent the animation from being shown
                 event.setCancelled(true);
 
-                // Check if the player has been hit recently
                 long currentTime = System.currentTimeMillis();
                 long lastHitTime = lastHitTimestamps.getOrDefault(player.getUniqueId(), 0L);
                 long cooldownMillis = 500;
 
                 if (currentTime - lastHitTime < cooldownMillis) {
-                    return; // Skip the knockback if the player was hit recently
+                    return;
                 }
 
                 lastHitTimestamps.put(player.getUniqueId(), currentTime);
 
-                // Calculate the damage, including enchantments and armor reduction
                 double damage = event.getFinalDamage();
 
-                // Manually apply the damage to the player without showing the animation
                 player.setHealth(Math.max(0, player.getHealth() - damage));
 
-                // Get the attacker's and target's locations
                 Location attackerLocation = attacker.getLocation();
                 Location targetLocation = player.getLocation();
 
-                // Calculate the knockback direction
                 Vector knockbackDirection = targetLocation.toVector().subtract(attackerLocation.toVector()).normalize();
 
-                // Set the knockback magnitude
                 double knockbackMagnitude = attacker.isSprinting() ? 1.3 : 0.8;
 
-                // Multiply the direction by the magnitude
                 Vector horizontalKnockback = knockbackDirection.multiply(knockbackMagnitude);
 
-                // Add vertical knockback component
                 Vector verticalKnockback = new Vector(0, 0.35, 0);
 
-                // Combine horizontal and vertical knockback
                 Vector knockback = horizontalKnockback.add(verticalKnockback);
 
-                // Apply the knockback to the target player
                 player.setVelocity(knockback);
             }
         }
     }
 
     public void removeAllArmor(Player player) {
-        // Create a packet to clear player's armor
         PacketContainer clearArmorPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
         clearArmorPacket.getIntegers().write(0, player.getEntityId());
 
-        // Define the slots where the armor and held items are equipped
         ArrayList<EnumWrappers.ItemSlot> slots = new ArrayList<>();
 
         if (config.getBoolean("hide.boots")) {
@@ -234,7 +216,6 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             slots.add(EnumWrappers.ItemSlot.OFFHAND);
         }
 
-        // Create a list of slot-item pairs with empty items (air) for the packet
         List<Pair<EnumWrappers.ItemSlot, ItemStack>> slotItemPairs = new ArrayList<>();
         for (EnumWrappers.ItemSlot itemSlot : slots) {
             ItemStack airItem = new ItemStack(Material.AIR);
@@ -242,12 +223,10 @@ public final class BetterInvisibility extends JavaPlugin implements Listener {
             slotItemPairs.add(slotItemPair);
         }
         clearArmorPacket.getSlotStackPairLists().write(0, slotItemPairs);
-
-        // Send the clear armor packet to all players in the same world
         List<Player> playersInWorld = player.getWorld().getPlayers();
         for (Player currentPlayer : playersInWorld) {
             try {
-                if (currentPlayer != player) {
+                if (!currentPlayer.equals(player)) {
                     protocolManager.sendServerPacket(currentPlayer, clearArmorPacket);
                 }
             } catch (Exception e) {
