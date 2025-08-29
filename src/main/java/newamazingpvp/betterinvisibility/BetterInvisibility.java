@@ -12,12 +12,13 @@ public final class BetterInvisibility extends JavaPlugin {
     @Override
     public void onLoad() {
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        PacketEvents.getAPI().init();
+        PacketEvents.getAPI().load();
     }
 
     @Override
     public void onEnable() {
         new Metrics(this, 18558);
+        PacketEvents.getAPI().init();
         configManager = new ConfigManager(this);
         armorManager = new ArmorManager(configManager);
         getServer().getPluginManager().registerEvents(new EventListener(configManager, armorManager), this);
@@ -26,10 +27,7 @@ public final class BetterInvisibility extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        try {
-            PacketEvents.getAPI().terminate();
-        } catch (Throwable ignored) {
-        }
+        PacketEvents.getAPI().terminate();
     }
 
     public ConfigManager getConfigManager() {

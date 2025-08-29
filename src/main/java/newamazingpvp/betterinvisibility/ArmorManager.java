@@ -75,7 +75,7 @@ public class ArmorManager {
     private void sendToWorldViewers(Player subject, WrapperPlayServerEntityEquipment packet) {
         for (Player viewer : subject.getWorld().getPlayers()) {
             if (viewer.equals(subject)) continue;
-            PacketEvents.getAPI().getProtocolManager().sendPacket(viewer, packet);
+            PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
         }
     }
 

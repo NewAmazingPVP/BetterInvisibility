@@ -5,4 +5,4 @@ api-version: 1.13
 authors: [ NewAmazingPVP ]
 description: Improves Invisibility in Minecraft by many ways!
 depend:
-  - PacketEvents
+  - packetevents
