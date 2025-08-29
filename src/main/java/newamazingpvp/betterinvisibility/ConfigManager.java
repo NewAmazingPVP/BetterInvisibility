@@ -17,7 +17,6 @@ public class ConfigManager {
         config.addDefault("hide.mainhand", true);
         config.addDefault("hide.offhand", true);
         config.addDefault("hide.potionParticles", false);
-        config.addDefault("enable_workaround", false);
         config.options().copyDefaults(true);
         plugin.saveConfig();
     }
@@ -50,7 +49,4 @@ public class ConfigManager {
         return config.getBoolean("hide.potionParticles");
     }
 
-    public boolean isEnableWorkaround() {
-        return config.getBoolean("enable_workaround");
-    }
 }

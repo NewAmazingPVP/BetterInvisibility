@@ -1,51 +1,50 @@
 package newamazingpvp.betterinvisibility;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.UUID;
 
 public class EventListener implements Listener {
 
     private final ConfigManager configManager;
     private final ArmorManager armorManager;
+    private final FoliaCompatScheduler scheduler;
     private boolean isEffectAddedByPlugin = false;
-    private final HashMap<UUID, Long> lastHitTimestamps = new HashMap<>();
+    private final java.util.Map<java.util.UUID, FoliaCompatScheduler.TickTask> armorTasks = new java.util.concurrent.ConcurrentHashMap<>();
 
     public EventListener(ConfigManager configManager, ArmorManager armorManager) {
         this.configManager = configManager;
         this.armorManager = armorManager;
+        this.scheduler = new FoliaCompatScheduler(BetterInvisibility.class);
     }
 
     @EventHandler
     public void onPlayerLogin(PlayerLoginEvent event) {
         if (event.getPlayer().hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-            BukkitRunnable runnable = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (event.getPlayer().hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-                        armorManager.removeAllArmor(event.getPlayer());
-                    } else {
-                        armorManager.restoreArmor(event.getPlayer());
-                        this.cancel();
-                    }
+            cancelTask(event.getPlayer());
+            FoliaCompatScheduler.TickTask newTask = scheduler.runAtEntityTimer(event.getPlayer(), task -> {
+                Player p = event.getPlayer();
+                if (!p.isOnline()) {
+                    task.cancel();
+                    cancelTask(p);
+                    return;
                 }
-            };
-            runnable.runTaskTimer(Bukkit.getPluginManager().getPlugin("BetterInvisibility"), 0L, 1L);
+                if (p.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                    armorManager.removeAllArmor(p);
+                } else {
+                    armorManager.restoreArmor(p);
+                    task.cancel();
+                    cancelTask(p);
+                }
+            }, 0L, 1L);
+            armorTasks.put(event.getPlayer().getUniqueId(), newTask);
         }
     }
 
@@ -59,63 +58,40 @@ public class EventListener implements Listener {
         if (entity instanceof Player) {
             Player player = (Player) entity;
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
-                if(configManager.isHidePotionParticles()) {
+                if (configManager.isHidePotionParticles()) {
                     PotionEffect potion = event.getNewEffect();
                     PotionEffect newEffect = new PotionEffect(PotionEffectType.INVISIBILITY, potion.getDuration(), potion.getAmplifier(), potion.isAmbient(), false);
                     player.removePotionEffect(PotionEffectType.INVISIBILITY);
                     isEffectAddedByPlugin = true;
                     player.addPotionEffect(newEffect);
-                    isEffectAddedByPlugin = true;
                 }
-                Bukkit.getScheduler().runTaskTimer(Bukkit.getPluginManager().getPlugin("BetterInvisibility"), () -> armorManager.removeAllArmor(player), 0L, 1L);
-
+                cancelTask(player);
+                FoliaCompatScheduler.TickTask t = scheduler.runAtEntityTimer(player, task -> armorManager.removeAllArmor(player), 0L, 1L);
+                armorTasks.put(player.getUniqueId(), t);
             } else if (event.getOldEffect() != null && event.getOldEffect().getType() != null && event.getOldEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
-                Bukkit.getScheduler().runTaskTimer(Bukkit.getPluginManager().getPlugin("BetterInvisibility"), () -> armorManager.restoreArmor(player), 0L, 1L);
+                cancelTask(player);
+                FoliaCompatScheduler.TickTask t = scheduler.runAtEntityTimer(player, task -> armorManager.restoreArmor(player), 0L, 1L);
+                armorTasks.put(player.getUniqueId(), t);
             }
         }
     }
 
     @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) throws InvocationTargetException {
-        if(!configManager.isEnableWorkaround()){
-            return;
-        }
-        if (event.getEntity() instanceof Player && event.getDamager() instanceof Player) {
-            Player player = (Player) event.getEntity();
-            Player attacker = (Player) event.getDamager();
+    public void onQuit(PlayerQuitEvent event) {
+        cancelTask(event.getPlayer());
+    }
 
-            if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+    @EventHandler
+    public void onKick(PlayerKickEvent event) {
+        cancelTask(event.getPlayer());
+    }
 
-                event.setCancelled(true);
-
-                long currentTime = System.currentTimeMillis();
-                long lastHitTime = lastHitTimestamps.getOrDefault(player.getUniqueId(), 0L);
-                long cooldownMillis = 500;
-
-                if (currentTime - lastHitTime < cooldownMillis) {
-                    return;
-                }
-
-                lastHitTimestamps.put(player.getUniqueId(), currentTime);
-
-                double damage = event.getFinalDamage();
-
-                player.setHealth(Math.max(0, player.getHealth() - damage));
-
-                Location attackerLocation = attacker.getLocation();
-                Location targetLocation = player.getLocation();
-
-                Vector knockbackDirection = targetLocation.toVector().subtract(attackerLocation.toVector()).normalize();
-
-                double knockbackMagnitude = attacker.isSprinting() ? 1.3 : 0.8;
-
-                Vector horizontalKnockback = knockbackDirection.multiply(knockbackMagnitude);
-
-                Vector verticalKnockback = new Vector(0, 0.35, 0);
-
-                Vector knockback = horizontalKnockback.add(verticalKnockback);
-
-                player.setVelocity(knockback);
+    private void cancelTask(Player player) {
+        FoliaCompatScheduler.TickTask t = armorTasks.remove(player.getUniqueId());
+        if (t != null) {
+            try {
+                t.cancel();
+            } catch (Throwable ignored) {
             }
         }
     }

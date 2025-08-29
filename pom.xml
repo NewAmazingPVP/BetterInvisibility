@@ -6,7 +6,7 @@
 
     <groupId>NewAmazingPVP</groupId>
     <artifactId>BetterInvisibility</artifactId>
-    <version>1.0</version>
+    <version>4.0.0</version>
     <packaging>jar</packaging>
 
     <name>BetterInvisibility</name>
@@ -40,6 +40,12 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.github.retrooper</pattern>
+                                    <shadedPattern>newamazingpvp.shaded.retrooper</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -55,8 +61,12 @@
 
     <repositories>
         <repository>
-            <id>dmulloy2-repo</id>
-            <url>https://repo.dmulloy2.net/repository/public/</url>
+            <id>codemc-releases</id>
+            <url>https://repo.codemc.io/repository/maven-releases/</url>
+        </repository>
+        <repository>
+            <id>codemc-snapshots</id>
+            <url>https://repo.codemc.io/repository/maven-snapshots/</url>
         </repository>
         <repository>
             <id>spigotmc-repo</id>
@@ -65,6 +75,14 @@
         <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>codemc</id>
+            <url>https://repo.codemc.org/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -76,10 +94,51 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib</artifactId>
-            <version>5.1.0</version>
-            <scope>provided</scope>
+            <groupId>com.github.retrooper</groupId>
+            <artifactId>packetevents-spigot</artifactId>
+            <version>2.9.5</version>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>windows-local-deploy</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                              todir="C:/Plugins Testing/Bungeecord/plugins"/>
+                                        <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                              todir="C:/Plugins Testing/Folia/plugins"/>
+                                        <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                              todir="C:/Plugins Testing/Paper/plugins"/>
+                                        <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                              todir="C:/Plugins Testing/Spigot/plugins"/>
+                                        <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                              todir="C:/Plugins Testing/Velocity/plugins"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
