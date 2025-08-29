@@ -1,124 +1,92 @@
 package newamazingpvp.betterinvisibility;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.Pair;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.player.Equipment;
+import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEquipment;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ArmorManager {
 
-    private final ProtocolManager protocolManager;
     private final ConfigManager configManager;
 
-    public ArmorManager(ProtocolManager protocolManager, ConfigManager configManager) {
-        this.protocolManager = protocolManager;
+    public ArmorManager(ConfigManager configManager) {
         this.configManager = configManager;
     }
 
     public void restoreArmor(Player player) {
-        PacketContainer restoreArmorPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
-        restoreArmorPacket.getIntegers().write(0, player.getEntityId());
-
-        ItemStack[] armorContents = player.getInventory().getArmorContents();
-        ItemStack mainHand = player.getInventory().getItemInMainHand();
-        ItemStack offHand = player.getInventory().getItemInOffHand();
-
-        ArrayList<EnumWrappers.ItemSlot> slots = new ArrayList<>();
+        List<Equipment> equipment = new ArrayList<>();
 
         if (configManager.isHideBoots()) {
-            slots.add(EnumWrappers.ItemSlot.FEET);
+            equipment.add(new Equipment(EquipmentSlot.BOOTS, toPE(player.getInventory().getBoots())));
         }
         if (configManager.isHideLeggings()) {
-            slots.add(EnumWrappers.ItemSlot.LEGS);
+            equipment.add(new Equipment(EquipmentSlot.LEGGINGS, toPE(player.getInventory().getLeggings())));
         }
         if (configManager.isHideChestplate()) {
-            slots.add(EnumWrappers.ItemSlot.CHEST);
+            equipment.add(new Equipment(EquipmentSlot.CHEST_PLATE, toPE(player.getInventory().getChestplate())));
         }
         if (configManager.isHideHelmet()) {
-            slots.add(EnumWrappers.ItemSlot.HEAD);
+            equipment.add(new Equipment(EquipmentSlot.HELMET, toPE(player.getInventory().getHelmet())));
         }
         if (configManager.isHideMainhand()) {
-            slots.add(EnumWrappers.ItemSlot.MAINHAND);
+            equipment.add(new Equipment(EquipmentSlot.MAIN_HAND, toPE(player.getInventory().getItemInMainHand())));
         }
         if (configManager.isHideOffhand()) {
-            slots.add(EnumWrappers.ItemSlot.OFFHAND);
+            equipment.add(new Equipment(EquipmentSlot.OFF_HAND, toPE(player.getInventory().getItemInOffHand())));
         }
 
-        List<Pair<EnumWrappers.ItemSlot, ItemStack>> slotItemPairs = new ArrayList<>();
-        for (int i = 0; i < slots.size(); i++) {
-            EnumWrappers.ItemSlot itemSlot = slots.get(i);
-            ItemStack item;
-            if (itemSlot == EnumWrappers.ItemSlot.MAINHAND) {
-                item = mainHand;
-            } else if (itemSlot == EnumWrappers.ItemSlot.OFFHAND) {
-                item = offHand;
-            } else {
-                item = armorContents[i];
-            }
-            Pair<EnumWrappers.ItemSlot, ItemStack> slotItemPair = new Pair<>(itemSlot, item);
-            slotItemPairs.add(slotItemPair);
-        }
-        restoreArmorPacket.getSlotStackPairLists().write(0, slotItemPairs);
-        List<Player> playersInWorld = player.getWorld().getPlayers();
-        for (Player currentPlayer : playersInWorld) {
-            try {
-                if (!currentPlayer.equals(player)) {
-                    protocolManager.sendServerPacket(currentPlayer, restoreArmorPacket);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+        WrapperPlayServerEntityEquipment packet = new WrapperPlayServerEntityEquipment(player.getEntityId(), equipment);
+        sendToWorldViewers(player, packet);
     }
 
     public void removeAllArmor(Player player) {
-        PacketContainer clearArmorPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
-        clearArmorPacket.getIntegers().write(0, player.getEntityId());
-
-        ArrayList<EnumWrappers.ItemSlot> slots = new ArrayList<>();
+        List<Equipment> equipment = new ArrayList<>();
 
         if (configManager.isHideBoots()) {
-            slots.add(EnumWrappers.ItemSlot.FEET);
+            equipment.add(new Equipment(EquipmentSlot.BOOTS, air()));
         }
         if (configManager.isHideLeggings()) {
-            slots.add(EnumWrappers.ItemSlot.LEGS);
+            equipment.add(new Equipment(EquipmentSlot.LEGGINGS, air()));
         }
         if (configManager.isHideChestplate()) {
-            slots.add(EnumWrappers.ItemSlot.CHEST);
+            equipment.add(new Equipment(EquipmentSlot.CHEST_PLATE, air()));
         }
         if (configManager.isHideHelmet()) {
-            slots.add(EnumWrappers.ItemSlot.HEAD);
+            equipment.add(new Equipment(EquipmentSlot.HELMET, air()));
         }
         if (configManager.isHideMainhand()) {
-            slots.add(EnumWrappers.ItemSlot.MAINHAND);
+            equipment.add(new Equipment(EquipmentSlot.MAIN_HAND, air()));
         }
         if (configManager.isHideOffhand()) {
-            slots.add(EnumWrappers.ItemSlot.OFFHAND);
+            equipment.add(new Equipment(EquipmentSlot.OFF_HAND, air()));
         }
 
-        List<Pair<EnumWrappers.ItemSlot, ItemStack>> slotItemPairs = new ArrayList<>();
-        for (EnumWrappers.ItemSlot itemSlot : slots) {
-            ItemStack airItem = new ItemStack(Material.AIR);
-            Pair<EnumWrappers.ItemSlot, ItemStack> slotItemPair = new Pair<>(itemSlot, airItem);
-            slotItemPairs.add(slotItemPair);
+        WrapperPlayServerEntityEquipment packet = new WrapperPlayServerEntityEquipment(player.getEntityId(), equipment);
+        sendToWorldViewers(player, packet);
+    }
+
+    private void sendToWorldViewers(Player subject, WrapperPlayServerEntityEquipment packet) {
+        for (Player viewer : subject.getWorld().getPlayers()) {
+            if (viewer.equals(subject)) continue;
+            PacketEvents.getAPI().getProtocolManager().sendPacket(viewer, packet);
         }
-        clearArmorPacket.getSlotStackPairLists().write(0, slotItemPairs);
-        List<Player> playersInWorld = player.getWorld().getPlayers();
-        for (Player currentPlayer : playersInWorld) {
-            try {
-                if (!currentPlayer.equals(player)) {
-                    protocolManager.sendServerPacket(currentPlayer, clearArmorPacket);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+    }
+
+    private static ItemStack air() {
+        return toPE(new org.bukkit.inventory.ItemStack(Material.AIR));
+    }
+
+    private static ItemStack toPE(org.bukkit.inventory.ItemStack bukkitItem) {
+        if (bukkitItem == null) {
+            return SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(Material.AIR));
         }
+        return SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
     }
 }
