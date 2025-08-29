@@ -22,7 +22,7 @@ public final class BetterInvisibility extends JavaPlugin {
         configManager = new ConfigManager(this);
         armorManager = new ArmorManager(configManager);
         getServer().getPluginManager().registerEvents(new EventListener(configManager, armorManager), this);
-        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().getEventManager().registerListener(new EquipmentPacketListener(armorManager));
     }
 
     @Override

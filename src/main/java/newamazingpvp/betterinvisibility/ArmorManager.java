@@ -11,61 +11,89 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ArmorManager {
 
+    private static final ItemStack AIR_ITEM = toPE(new org.bukkit.inventory.ItemStack(Material.AIR));
+
     private final ConfigManager configManager;
+    private final Set<Integer> invisible = ConcurrentHashMap.newKeySet();
 
     public ArmorManager(ConfigManager configManager) {
         this.configManager = configManager;
     }
 
-    public void restoreArmor(Player player) {
-        List<Equipment> equipment = new ArrayList<>();
-
-        if (configManager.isHideBoots()) {
-            equipment.add(new Equipment(EquipmentSlot.BOOTS, toPE(player.getInventory().getBoots())));
-        }
-        if (configManager.isHideLeggings()) {
-            equipment.add(new Equipment(EquipmentSlot.LEGGINGS, toPE(player.getInventory().getLeggings())));
-        }
-        if (configManager.isHideChestplate()) {
-            equipment.add(new Equipment(EquipmentSlot.CHEST_PLATE, toPE(player.getInventory().getChestplate())));
-        }
-        if (configManager.isHideHelmet()) {
-            equipment.add(new Equipment(EquipmentSlot.HELMET, toPE(player.getInventory().getHelmet())));
-        }
-        if (configManager.isHideMainhand()) {
-            equipment.add(new Equipment(EquipmentSlot.MAIN_HAND, toPE(player.getInventory().getItemInMainHand())));
-        }
-        if (configManager.isHideOffhand()) {
-            equipment.add(new Equipment(EquipmentSlot.OFF_HAND, toPE(player.getInventory().getItemInOffHand())));
-        }
-
-        WrapperPlayServerEntityEquipment packet = new WrapperPlayServerEntityEquipment(player.getEntityId(), equipment);
-        sendToWorldViewers(player, packet);
+    public void hidePlayer(Player player) {
+        invisible.add(player.getEntityId());
+        sendEquipment(player, true);
     }
 
-    public void removeAllArmor(Player player) {
+    public void showPlayer(Player player) {
+        sendEquipment(player, false);
+        invisible.remove(player.getEntityId());
+    }
+
+    public void stopTracking(Player player) {
+        invisible.remove(player.getEntityId());
+    }
+
+    public boolean isInvisible(int entityId) {
+        return invisible.contains(entityId);
+    }
+
+    public void maskPacket(WrapperPlayServerEntityEquipment packet) {
         List<Equipment> equipment = new ArrayList<>();
 
         if (configManager.isHideBoots()) {
-            equipment.add(new Equipment(EquipmentSlot.BOOTS, air()));
+            equipment.add(new Equipment(EquipmentSlot.BOOTS, AIR_ITEM));
         }
         if (configManager.isHideLeggings()) {
-            equipment.add(new Equipment(EquipmentSlot.LEGGINGS, air()));
+            equipment.add(new Equipment(EquipmentSlot.LEGGINGS, AIR_ITEM));
         }
         if (configManager.isHideChestplate()) {
-            equipment.add(new Equipment(EquipmentSlot.CHEST_PLATE, air()));
+            equipment.add(new Equipment(EquipmentSlot.CHEST_PLATE, AIR_ITEM));
         }
         if (configManager.isHideHelmet()) {
-            equipment.add(new Equipment(EquipmentSlot.HELMET, air()));
+            equipment.add(new Equipment(EquipmentSlot.HELMET, AIR_ITEM));
         }
         if (configManager.isHideMainhand()) {
-            equipment.add(new Equipment(EquipmentSlot.MAIN_HAND, air()));
+            equipment.add(new Equipment(EquipmentSlot.MAIN_HAND, AIR_ITEM));
         }
         if (configManager.isHideOffhand()) {
-            equipment.add(new Equipment(EquipmentSlot.OFF_HAND, air()));
+            equipment.add(new Equipment(EquipmentSlot.OFF_HAND, AIR_ITEM));
+        }
+
+        packet.setEquipment(equipment);
+    }
+
+    private void sendEquipment(Player player, boolean air) {
+        List<Equipment> equipment = new ArrayList<>();
+
+        if (configManager.isHideBoots()) {
+            equipment.add(new Equipment(EquipmentSlot.BOOTS, air ? AIR_ITEM : toPE(player.getInventory().getBoots())));
+        }
+        if (configManager.isHideLeggings()) {
+            equipment.add(new Equipment(EquipmentSlot.LEGGINGS, air ? AIR_ITEM : toPE(player.getInventory().getLeggings())));
+        }
+        if (configManager.isHideChestplate()) {
+            equipment.add(new Equipment(EquipmentSlot.CHEST_PLATE, air ? AIR_ITEM : toPE(player.getInventory().getChestplate())));
+        }
+        if (configManager.isHideHelmet()) {
+            equipment.add(new Equipment(EquipmentSlot.HELMET, air ? AIR_ITEM : toPE(player.getInventory().getHelmet())));
+        }
+        if (configManager.isHideMainhand()) {
+            org.bukkit.inventory.ItemStack main = getMainHand(player);
+            equipment.add(new Equipment(EquipmentSlot.MAIN_HAND, air ? AIR_ITEM : toPE(main)));
+        }
+        if (configManager.isHideOffhand()) {
+            org.bukkit.inventory.ItemStack off = getOffHand(player);
+            if (off != null) {
+                equipment.add(new Equipment(EquipmentSlot.OFF_HAND, air ? AIR_ITEM : toPE(off)));
+            } else if (air) {
+                equipment.add(new Equipment(EquipmentSlot.OFF_HAND, AIR_ITEM));
+            }
         }
 
         WrapperPlayServerEntityEquipment packet = new WrapperPlayServerEntityEquipment(player.getEntityId(), equipment);
@@ -79,14 +107,26 @@ public class ArmorManager {
         }
     }
 
-    private static ItemStack air() {
-        return toPE(new org.bukkit.inventory.ItemStack(Material.AIR));
-    }
-
     private static ItemStack toPE(org.bukkit.inventory.ItemStack bukkitItem) {
         if (bukkitItem == null) {
-            return SpigotConversionUtil.fromBukkitItemStack(new org.bukkit.inventory.ItemStack(Material.AIR));
+            return AIR_ITEM;
         }
         return SpigotConversionUtil.fromBukkitItemStack(bukkitItem);
+    }
+
+    private static org.bukkit.inventory.ItemStack getMainHand(Player player) {
+        try {
+            return player.getInventory().getItemInMainHand();
+        } catch (NoSuchMethodError e) {
+            return player.getInventory().getItemInHand();
+        }
+    }
+
+    private static org.bukkit.inventory.ItemStack getOffHand(Player player) {
+        try {
+            return player.getInventory().getItemInOffHand();
+        } catch (NoSuchMethodError e) {
+            return null;
+        }
     }
 }
