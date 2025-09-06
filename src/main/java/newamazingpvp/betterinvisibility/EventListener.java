@@ -41,8 +41,10 @@ public class EventListener implements Listener {
             if (event.getNewEffect() != null && event.getNewEffect().getType() != null && event.getNewEffect().getType().equals(PotionEffectType.INVISIBILITY)) {
                 if (configManager.isHidePotionParticles()) {
                     PotionEffect potion = event.getNewEffect();
-                    PotionEffect newEffect = new PotionEffect(PotionEffectType.INVISIBILITY, potion.getDuration(), potion.getAmplifier(), potion.isAmbient(), !configManager.isHidePotionParticles());
-                    player.removePotionEffect(PotionEffectType.INVISIBILITY);
+                    PotionEffect newEffect = new PotionEffect(PotionEffectType.INVISIBILITY, potion.getDuration(), potion.getAmplifier(), potion.isAmbient(), false);
+                    //player.removePotionEffect(PotionEffectType.INVISIBILITY);
+                    event.setCancelled(true);
+                    //player.getActivePotionEffects().clear();
                     isEffectAddedByPlugin = true;
                     player.addPotionEffect(newEffect);
                 }
