@@ -3,4 +3,5 @@ version: '4.0.1'
 main: newamazingpvp.betterinvisibility.BetterInvisibility
 api-version: 1.13
 authors: [ NewAmazingPVP ]
+depend: [ packetevents ]
 description: Improves Invisibility in Minecraft by many ways!

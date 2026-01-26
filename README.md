@@ -55,19 +55,23 @@ Make invisibility actually invisible. Cleanly hides armor and held items from ot
 ## Requirements
 
 - Java 8 or newer
+- PacketEvents plugin (spigot build)
 - Internet not required at runtime
 
-PacketEvents is bundled (shaded) with the plugin. You do not need ProtocolLib.
+PacketEvents is a required dependency. Install it separately (no ProtocolLib needed).
 
 ---
 
 ## Installation
 
-1. Download the latest jar from Spigot:
-   https://www.spigotmc.org/resources/betterinvisibility.110044/
+1. Download PacketEvents (spigot build) from:
+   https://ci.codemc.io/job/retrooper/job/packetevents/
 2. Place it in your server's `plugins/` folder.
-3. Start/restart the server to generate `config.yml`.
-4. Adjust `plugins/BetterInvisibility/config.yml` if desired.
+3. Download the latest BetterInvisibility jar from Spigot:
+   https://www.spigotmc.org/resources/betterinvisibility.110044/
+4. Place it in your server's `plugins/` folder.
+5. Start/restart the server to generate `config.yml`.
+6. Adjust `plugins/BetterInvisibility/config.yml` if desired.
 
 ---
 
