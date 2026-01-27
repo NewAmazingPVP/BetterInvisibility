@@ -28,6 +28,7 @@ public class EquipmentPacketListener extends PacketListenerAbstract {
         }
         if (armorManager.isInvisible(packet.getEntityId())) {
             armorManager.maskPacket(packet);
+            event.markForReEncode(true);
         }
     }
 }

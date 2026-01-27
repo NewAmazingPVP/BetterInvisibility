@@ -1,6 +1,6 @@
 <div align="center">
 
-# BetterInvisibility v4.0.0
+# BetterInvisibility v4.0.3
 
 Make invisibility actually invisible. Cleanly hides armor and held items from other players at the packet layer.
 
@@ -55,7 +55,7 @@ Make invisibility actually invisible. Cleanly hides armor and held items from ot
 ## Requirements
 
 - Java 8 or newer
-- PacketEvents plugin (spigot build)
+- PacketEvents plugin 2.11.2+ (spigot build)
 - Internet not required at runtime
 
 PacketEvents is a required dependency. Install it separately (no ProtocolLib needed).
@@ -137,7 +137,7 @@ Requires Maven and Java 8+.
 mvn -DskipTests package
 ```
 
-The shaded jar is produced in `target/`.
+The jar is produced in `target/`.
 
 ---
 

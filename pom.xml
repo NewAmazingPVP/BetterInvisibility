@@ -6,7 +6,7 @@
 
     <groupId>NewAmazingPVP</groupId>
     <artifactId>BetterInvisibility</artifactId>
-    <version>4.0.2</version>
+    <version>4.0.3</version>
     <packaging>jar</packaging>
 
     <name>BetterInvisibility</name>
@@ -14,7 +14,7 @@
     <description>Improves Invisibility in Minecraft by many ways!</description>
     <properties>
         <java.version>1.8</java.version>
-        <packetevents.version>2.10.1</packetevents.version>
+        <packetevents.version>2.11.2</packetevents.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
