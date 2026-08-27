@@ -44,28 +44,29 @@ public class ArmorManager {
     }
 
     public void maskPacket(WrapperPlayServerEntityEquipment packet) {
-        List<Equipment> equipment = new ArrayList<>();
+        List<Equipment> original = packet.getEquipment();
+        if (original == null || original.isEmpty()) return;
 
-        if (configManager.isHideBoots()) {
-            equipment.add(new Equipment(EquipmentSlot.BOOTS, AIR_ITEM));
-        }
-        if (configManager.isHideLeggings()) {
-            equipment.add(new Equipment(EquipmentSlot.LEGGINGS, AIR_ITEM));
-        }
-        if (configManager.isHideChestplate()) {
-            equipment.add(new Equipment(EquipmentSlot.CHEST_PLATE, AIR_ITEM));
-        }
-        if (configManager.isHideHelmet()) {
-            equipment.add(new Equipment(EquipmentSlot.HELMET, AIR_ITEM));
-        }
-        if (configManager.isHideMainhand()) {
-            equipment.add(new Equipment(EquipmentSlot.MAIN_HAND, AIR_ITEM));
-        }
-        if (configManager.isHideOffhand()) {
-            equipment.add(new Equipment(EquipmentSlot.OFF_HAND, AIR_ITEM));
-        }
+        List<Equipment> masked = new ArrayList<>(original);
 
-        packet.setEquipment(equipment);
+        for (int i = 0; i < masked.size(); i++) {
+            Equipment eq = masked.get(i);
+            EquipmentSlot slot = eq.getSlot();
+            boolean hide = false;
+            switch (slot) {
+                case BOOTS:       hide = configManager.isHideBoots(); break;
+                case LEGGINGS:    hide = configManager.isHideLeggings(); break;
+                case CHEST_PLATE: hide = configManager.isHideChestplate(); break;
+                case HELMET:      hide = configManager.isHideHelmet(); break;
+                case MAIN_HAND:   hide = configManager.isHideMainhand(); break;
+                case OFF_HAND:    hide = configManager.isHideOffhand(); break;
+                default:          hide = false;
+            }
+            if (hide) {
+                masked.set(i, new Equipment(slot, AIR_ITEM));
+            }
+        }
+        packet.setEquipment(masked);
     }
 
     private void sendEquipment(Player player, boolean air) {
